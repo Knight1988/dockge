@@ -167,7 +167,7 @@ export default defineComponent({
                 this.socketIO.connecting = true;
             }, 1500);
 
-            socket = io(url);
+            socket = io(url, { path: import.meta.env.BASE_URL + "socket.io" });
 
             // Handling events from agents
             let agentSocket = new AgentSocket();
