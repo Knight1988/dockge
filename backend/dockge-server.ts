@@ -191,7 +191,8 @@ export class DockgeServer {
 
         // Binding Routers
         for (const router of this.routerList) {
-            this.app.use(router.create(this.app, this));
+            const mountPath = router.mountPath ?? "/";
+            this.app.use(mountPath, router.create(this.app, this));
         }
 
         // Static files

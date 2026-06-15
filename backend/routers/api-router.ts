@@ -29,6 +29,8 @@ function makeApiSocket(userID: number): DockgeSocket {
 }
 
 export class ApiRouter extends Router {
+    mountPath = "/api";
+
     create(app: Express, server: DockgeServer): ExpressRouter {
         const router = express.Router();
 
@@ -85,7 +87,7 @@ export class ApiRouter extends Router {
          * Edit an existing stack's compose file (save only, no redeploy).
          * Body: { composeYAML: string, composeENV?: string }
          */
-        router.put("/api/stacks/:name", async (req: Request, res: Response) => {
+        router.put("/stacks/:name", async (req: Request, res: Response) => {
             try {
                 const { name } = req.params;
                 const { composeYAML, composeENV } = req.body || {};
@@ -105,7 +107,7 @@ export class ApiRouter extends Router {
         /**
          * Start a stack (docker compose up -d --remove-orphans)
          */
-        router.post("/api/stacks/:name/start", async (req: Request, res: Response) => {
+        router.post("/stacks/:name/start", async (req: Request, res: Response) => {
             try {
                 const { name } = req.params;
                 const socket = makeApiSocket(req.userID!);
@@ -121,7 +123,7 @@ export class ApiRouter extends Router {
         /**
          * Stop a stack (docker compose stop)
          */
-        router.post("/api/stacks/:name/stop", async (req: Request, res: Response) => {
+        router.post("/stacks/:name/stop", async (req: Request, res: Response) => {
             try {
                 const { name } = req.params;
                 const socket = makeApiSocket(req.userID!);
@@ -137,7 +139,7 @@ export class ApiRouter extends Router {
         /**
          * Restart a stack (docker compose restart)
          */
-        router.post("/api/stacks/:name/restart", async (req: Request, res: Response) => {
+        router.post("/stacks/:name/restart", async (req: Request, res: Response) => {
             try {
                 const { name } = req.params;
                 const socket = makeApiSocket(req.userID!);
@@ -154,7 +156,7 @@ export class ApiRouter extends Router {
          * Update a stack: pull new images, then restart if running
          * (docker compose pull; docker compose up -d)
          */
-        router.post("/api/stacks/:name/update", async (req: Request, res: Response) => {
+        router.post("/stacks/:name/update", async (req: Request, res: Response) => {
             try {
                 const { name } = req.params;
                 const socket = makeApiSocket(req.userID!);
