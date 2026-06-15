@@ -353,7 +353,12 @@ export class MainSocketHandler extends SocketHandler {
                 const beans = await R.find("access_token", " user_id = ? AND active = 1 ", [ socket.userID ]);
                 callback({
                     ok: true,
-                    tokens: beans.map((b) => (b as unknown as AccessToken).toPublicJSON()),
+                    tokens: beans.map((b) => ({
+                        id: b.id,
+                        name: b.name,
+                        created_date: b.created_date,
+                        last_used_date: b.last_used_date,
+                    })),
                 });
             } catch (e) {
                 callbackError(e, callback);
