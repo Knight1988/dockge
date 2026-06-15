@@ -26,7 +26,7 @@ Dockge is a fancy, easy-to-use, reactive self-hosted Docker Compose stack manage
 
 ## Changes in This Fork
 
-This fork adds **3 commits** on top of the upstream fork point:
+This fork adds **4 commits** on top of the upstream fork point:
 
 ---
 
@@ -128,6 +128,35 @@ Files changed: `backend/dockge-server.ts`, `backend/router.ts`, `backend/routers
 
 ---
 
+### 4. `5f74cd3` — BASE_PATH support for subpath hosting behind nginx
+> *2026-06-15 · 3 files changed, 3 insertions / 2 deletions*
+
+Adds configurable subpath hosting so the app can be served at a URL prefix (e.g. `/dockge/`) behind a reverse proxy without breaking assets, routing, or the WebSocket connection. Set `BASE_PATH` at build time; the default `/` keeps the image root-compatible.
+
+**How it works:** nginx strips the prefix (`rewrite ^/dockge/(.*)$ /$1 break;`) so the backend receives root-relative paths and needs no changes. The frontend bakes the base in at Vite build time via `process.env.BASE_PATH`.
+
+**`frontend/vite.config.ts`** *(modified)*
+- Adds `base: process.env.BASE_PATH || "/"` — Vite uses this as `import.meta.env.BASE_URL` and rewrites all absolute asset references in `index.html` to include the prefix
+
+**`frontend/src/router.ts`** *(modified)*
+- `createWebHistory(import.meta.env.BASE_URL)` — Vue Router resolves all routes under the subpath automatically; no per-route changes needed
+
+**`frontend/src/mixins/socket.ts`** *(modified)*
+- `io(url, { path: import.meta.env.BASE_URL + "socket.io" })` — socket.io client connects to `/dockge/socket.io` (in the subpath build) instead of the default `/socket.io`
+
+**Usage:** build the image with `BASE_PATH=/dockge/ ./publish.sh --skip-base`; nginx location block:
+```nginx
+location /dockge/ {
+  proxy_pass http://127.0.0.1:5001/;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection upgrade;
+  proxy_http_version 1.1;
+  rewrite ^/dockge/(.*)$ /$1 break;
+}
+```
+
+---
+
 ## Files Added by This Fork
 
 | File | Purpose |
@@ -147,7 +176,9 @@ Files changed: `backend/dockge-server.ts`, `backend/router.ts`, `backend/routers
 | `backend/socket-handlers/main-socket-handler.ts` | Add `listAccessTokens`, `createAccessToken`, `revokeAccessToken` socket events |
 | `frontend/src/lang/en.json` | Add access token i18n keys |
 | `frontend/src/pages/Settings.vue` | Add "Access Tokens" settings tab |
-| `frontend/src/router.ts` | Register `/settings/access-tokens` route |
+| `frontend/src/router.ts` | Register `/settings/access-tokens` route; pass `BASE_URL` to `createWebHistory` |
+| `frontend/src/mixins/socket.ts` | Pass `path` option to socket.io client for subpath hosting |
+| `frontend/vite.config.ts` | Add `base: process.env.BASE_PATH` for configurable subpath builds |
 | `.gitignore` | Ignore `.playwright-mcp/` |
 | `frontend/components.d.ts` | Remove stale generated entries |
 
@@ -165,9 +196,10 @@ docker run --rm -p 5001:5001 --name dockge knight1988/dockge:latest
 Use `publish.sh` to build and push a new release:
 
 ```bash
-./publish.sh                   # full build (includes base images)
-./publish.sh --skip-base       # faster: skip base layer rebuild
-./publish.sh --version 1.5.1   # override version tag
+./publish.sh                          # full build (includes base images)
+./publish.sh --skip-base              # faster: skip base layer rebuild
+./publish.sh --version 1.5.1         # override version tag
+BASE_PATH=/dockge/ ./publish.sh --skip-base  # build for subpath /dockge/
 ```
 
 ---
