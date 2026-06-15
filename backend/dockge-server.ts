@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { MainRouter } from "./routers/main-router";
+import { ApiRouter } from "./routers/api-router";
 import * as fs from "node:fs";
 import { PackageJson } from "type-fest";
 import { Database } from "./database";
@@ -51,6 +52,7 @@ export class DockgeServer {
      */
     routerList : Router[] = [
         new MainRouter(),
+        new ApiRouter(),
     ];
 
     /**

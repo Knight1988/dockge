@@ -20,6 +20,7 @@ import jwt from "jsonwebtoken";
 import { Settings } from "../settings";
 import fs, { promises as fsAsync } from "fs";
 import path from "path";
+import { AccessToken } from "../models/access-token";
 
 export class MainSocketHandler extends SocketHandler {
     create(socket : DockgeSocket, server : DockgeServer) {
@@ -339,6 +340,50 @@ export class MainSocketHandler extends SocketHandler {
                     ok: true,
                     composeTemplate,
                 });
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        // ── Access Token management ────────────────────────────────────────────
+
+        socket.on("listAccessTokens", async (callback) => {
+            try {
+                checkLogin(socket);
+                const beans = await R.find("access_token", " user_id = ? AND active = 1 ", [ socket.userID ]);
+                callback({
+                    ok: true,
+                    tokens: beans.map((b) => (b as unknown as AccessToken).toPublicJSON()),
+                });
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        socket.on("createAccessToken", async (name : unknown, callback) => {
+            try {
+                checkLogin(socket);
+                if (typeof name !== "string" || name.trim() === "") {
+                    throw new ValidationError("Token name is required.");
+                }
+                const token = await AccessToken.create(socket.userID, name.trim());
+                callback({ ok: true, token });
+            } catch (e) {
+                callbackError(e, callback);
+            }
+        });
+
+        socket.on("revokeAccessToken", async (id : unknown, callback) => {
+            try {
+                checkLogin(socket);
+                if (typeof id !== "number" && typeof id !== "string") {
+                    throw new ValidationError("Invalid token ID.");
+                }
+                await R.exec(
+                    "UPDATE access_token SET active = 0 WHERE id = ? AND user_id = ?",
+                    [ id, socket.userID ]
+                );
+                callback({ ok: true });
             } catch (e) {
                 callbackError(e, callback);
             }

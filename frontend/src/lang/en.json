@@ -148,5 +148,16 @@
     "rmCode": "rm",
     "rmRfCode": "rm -rf",
     "envVarCode": "DOCKGE_ENABLE_CONSOLE=true",
-    "confirmLeaveStack": "You are currently editing a stack. Are you sure you want to leave?"
+    "confirmLeaveStack": "You are currently editing a stack. Are you sure you want to leave?",
+    "AccessTokens": "Access Tokens",
+    "CreateToken": "Create Token",
+    "TokenName": "Token name",
+    "RevokeToken": "Revoke",
+    "tokenCreatedOnce": "Copy this token now — it won't be shown again.",
+    "NoTokens": "No access tokens yet.",
+    "Created": "Created",
+    "LastUsed": "Last Used",
+    "confirmRevokeToken": "Are you sure you want to revoke this token? It will stop working immediately.",
+    "CopyToken": "Copy",
+    "APIUsageHint": "Use this token in your CI/CD pipeline"
 }

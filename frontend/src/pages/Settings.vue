@@ -86,6 +86,9 @@ export default {
                 globalEnv: {
                     title: this.$t("GlobalEnv"),
                 },
+                accessTokens: {
+                    title: this.$t("AccessTokens"),
+                },
                 about: {
                     title: this.$t("About"),
                 },
